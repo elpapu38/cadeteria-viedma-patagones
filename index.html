@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cruce Directo · Cadetería y Moto-Viajes | Viedma - Carmen de Patagones</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="antialiased">
+
+  <!-- HEADER -->
+  <header class="max-w-5xl mx-auto px-5 pt-6 flex items-center justify-between">
+    <div class="font-display text-2xl tracking-tight" style="color:var(--rio)">
+      Cruce<span style="color:var(--ocre)">Directo</span>
+    </div>
+    <button id="btnAdmin" class="flex items-center gap-1.5 text-sm text-[color:var(--rio)]/70 hover:text-[color:var(--rio)]">
+      <i data-lucide="settings" class="w-4 h-4"></i> Panel admin
+    </button>
+  </header>
+
+  <!-- HERO -->
+  <section class="max-w-5xl mx-auto px-5 pt-10 pb-8">
+    <h1 class="font-display text-[13vw] leading-[0.9] sm:text-6xl md:text-7xl tracking-tight" style="color:var(--tinta)">
+      Cadetería y moto-viajes,<br>
+      <span style="color:var(--rio)">de una costa a la otra.</span>
+    </h1>
+    <p class="mt-5 max-w-md text-base md:text-lg text-[color:var(--tinta)]/70">
+      Pedís, cotizás y confirmás por WhatsApp en menos de un minuto. Sin apps que descargar, sin vueltas.
+    </p>
+
+    <div class="mt-9 flex items-center gap-3 max-w-md">
+      <div class="route-dot"></div>
+      <div class="route-line flex-1"></div>
+      <div class="route-dot end"></div>
+    </div>
+    <div class="mt-1 flex items-center justify-between max-w-md font-display text-lg tracking-wide">
+      <span style="color:var(--rio)">VIEDMA</span>
+      <span style="color:var(--ocre)">C. DE PATAGONES</span>
+    </div>
+  </section>
+
+  <!-- FORMULARIO DE COTIZACIÓN -->
+  <section id="cotizador" class="max-w-5xl mx-auto px-5 pb-16">
+    <div class="bg-white/60 rounded-2xl border border-black/5 p-5 md:p-7">
+
+      <h2 class="font-display text-2xl mb-5" style="color:var(--tinta)">Armá tu pedido</h2>
+
+      <!-- Tipo de servicio -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium mb-2 text-[color:var(--tinta)]/70">¿Qué necesitás?</label>
+        <div class="flex gap-2">
+          <button type="button" class="chip selected flex-1 rounded-xl py-3 text-sm font-medium" data-servicio="pasajero">
+            <i data-lucide="bike"></i> Viaje de pasajero
+          </button>
+          <button type="button" class="chip flex-1 rounded-xl py-3 text-sm font-medium" data-servicio="cadeteria">
+            <i data-lucide="package"></i> Cadetería / Envío
+          </button>
+        </div>
+      </div>
+
+      <!-- Recorrido: siempre tarifa fija -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium mb-2 text-[color:var(--tinta)]/70">Recorrido</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button type="button" class="chip selected rounded-xl py-3 text-sm font-medium" data-recorrido="viedma">
+            Interno Viedma
+          </button>
+          <button type="button" class="chip rounded-xl py-3 text-sm font-medium" data-recorrido="patagones">
+            Interno C. de Patagones
+          </button>
+          <button type="button" class="chip rounded-xl py-3 text-sm font-medium" data-recorrido="cruce">
+            Cruce entre ciudades
+          </button>
+        </div>
+      </div>
+
+      <!-- Direcciones (se completan solas al tocar el mapa, o se pueden editar a mano) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-sm font-medium mb-1.5 text-[color:var(--tinta)]/70">Origen</label>
+          <input id="input-origen" type="text" placeholder="Tocá el mapa para marcarlo"
+                 class="field w-full rounded-xl px-4 py-3 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1.5 text-[color:var(--tinta)]/70">Destino</label>
+          <input id="input-destino" type="text" placeholder="Tocá el mapa para marcarlo"
+                 class="field w-full rounded-xl px-4 py-3 text-sm">
+        </div>
+      </div>
+
+      <!-- Mapa -->
+      <div id="mapa" class="w-full h-56 rounded-xl mb-2 border border-black/10 overflow-hidden"></div>
+      <p class="text-xs text-[color:var(--tinta)]/50 mb-5">
+        Primer toque marca el origen, segundo toque el destino. Volvé a tocar para reiniciar.
+      </p>
+
+      <!-- Medio de pago -->
+      <div class="mb-2">
+        <label class="block text-sm font-medium mb-2 text-[color:var(--tinta)]/70">Medio de pago</label>
+        <div class="flex gap-2">
+          <button type="button" class="chip selected flex-1 rounded-xl py-3 text-sm font-medium" data-pago="efectivo">
+            Efectivo
+          </button>
+          <button type="button" class="chip flex-1 rounded-xl py-3 text-sm font-medium" data-pago="transferencia">
+            Transferencia / MP
+          </button>
+        </div>
+      </div>
+
+      <!-- Datos de transferencia (ocultos hasta elegir ese medio de pago) -->
+      <div id="caja-alias" class="hidden mb-5 mt-3 p-4 rounded-xl text-sm space-y-1" style="background:#F1E7D2; border:1px solid #E1CFA0;">
+        <p class="font-medium" style="color:var(--tinta)">Datos para transferir:</p>
+        <p style="color:var(--tinta)"><strong>Alias:</strong> <span id="txt-alias">cruce.directo.mp</span></p>
+        <p style="color:var(--tinta)"><strong>Titular:</strong> Nombre y Apellido</p>
+        <button type="button" id="btn-copiar-alias" class="mt-1 text-xs font-medium px-3 py-1.5 rounded-lg" style="background:var(--rio); color:var(--arena)">
+          Copiar alias
+        </button>
+      </div>
+
+      <!-- Resumen + acción -->
+      <div class="flex items-center justify-between rounded-xl p-4 mb-4" style="background:var(--rio)">
+        <div>
+          <span id="txt-detalle" class="block text-xs mb-0.5" style="color:var(--arena); opacity:.75">Tarifa fija: Interno Viedma</span>
+          <span id="txt-total" class="font-display text-3xl" style="color:var(--ocre-claro)">$ 0</span>
+        </div>
+      </div>
+
+      <button type="button" id="btn-whatsapp" class="btn-whatsapp w-full rounded-xl py-4 font-medium flex items-center justify-center gap-2">
+        <i data-lucide="message-circle" class="w-4 h-4"></i> Pedir por WhatsApp
+      </button>
+    </div>
+  </section>
+
+  <footer class="max-w-5xl mx-auto px-5 pb-10 text-xs text-[color:var(--tinta)]/40">
+    Servicio local independiente · Viedma y Carmen de Patagones
+  </footer>
+
+  <!-- MODAL ADMIN -->
+  <div id="modal-admin" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-card rounded-2xl max-w-xs w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-black/10 pb-2">
+        <h3 class="font-display text-lg flex items-center gap-1.5" style="color:var(--tinta)">
+          <i data-lucide="lock" class="w-4 h-4" style="color:var(--rio)"></i> Configurar tarifas
+        </h3>
+        <button id="btn-cerrar-admin" class="text-[color:var(--tinta)]/40 hover:text-[color:var(--tinta)]">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="sec-login" class="space-y-3">
+        <input type="password" id="admin-pass" placeholder="Contraseña"
+               class="field w-full rounded-lg px-3 py-2 text-sm">
+        <button id="btn-login-admin" class="btn-primary w-full text-sm font-medium py-2 rounded-lg">
+          Ingresar
+        </button>
+      </div>
+
+      <div id="sec-precios" class="hidden space-y-3 max-h-80 overflow-y-auto pr-1">
+        <div>
+          <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Fijo Interno Viedma ($)</label>
+          <input type="number" id="cfg-fijo-viedma" class="field w-full rounded-lg px-3 py-1.5 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Fijo Interno Patagones ($)</label>
+          <input type="number" id="cfg-fijo-patagones" class="field w-full rounded-lg px-3 py-1.5 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Fijo Cruce entre ciudades ($)</label>
+          <input type="number" id="cfg-fijo-cruce" class="field w-full rounded-lg px-3 py-1.5 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Recargo pasajero ($)</label>
+          <input type="number" id="cfg-pasajero" class="field w-full rounded-lg px-3 py-1.5 text-sm">
+        </div>
+        <button id="btn-guardar-tarifas" class="btn-primary w-full text-sm font-medium py-2 rounded-lg">
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

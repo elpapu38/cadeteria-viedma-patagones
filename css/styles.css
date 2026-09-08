@@ -1,0 +1,82 @@
+:root{
+  --arena:#EFEAE0;
+  --tinta:#1C1B18;
+  --rio:#16324F;
+  --rio-claro:#274A70;
+  --ocre:#C98A2C;
+  --ocre-claro:#E1B364;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--arena);
+  color:var(--tinta);
+  font-family:'Work Sans', sans-serif;
+}
+
+.font-display{font-family:'Barlow Condensed', sans-serif;}
+
+/* Línea de ruta punteada del hero */
+.route-line{
+  position:relative;
+  height:2px;
+  background-image:linear-gradient(to right, var(--rio) 60%, transparent 0%);
+  background-position:top;
+  background-size:16px 2px;
+  background-repeat:repeat-x;
+}
+
+/* Punto de origen/destino, reutilizado también como ícono de marcador en el mapa */
+.route-dot{
+  width:14px;height:14px;border-radius:9999px;
+  background:var(--rio);
+  box-shadow:0 0 0 4px var(--arena), 0 0 0 5px var(--rio);
+}
+.route-dot.end{background:var(--ocre); box-shadow:0 0 0 4px var(--arena), 0 0 0 5px var(--ocre);}
+
+.btn-primary{
+  background:var(--rio);
+  color:var(--arena);
+  transition:transform .15s ease, background .15s ease;
+}
+.btn-primary:hover{background:var(--rio-claro); transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+.btn-whatsapp{
+  background:#1C1B18;
+  color:var(--arena);
+  transition:background .15s ease;
+}
+.btn-whatsapp:hover{background:#333029;}
+
+.field{
+  border:1.5px solid #D8D2C2;
+  background:#FBFAF6;
+}
+.field:focus{outline:none; border-color:var(--rio); box-shadow:0 0 0 3px rgba(22,50,79,0.12);}
+
+.chip{
+  border:1.5px solid #D8D2C2;
+  transition:all .15s ease;
+  cursor:pointer;
+}
+.chip.selected{
+  background:var(--rio);
+  border-color:var(--rio);
+  color:var(--arena);
+}
+.chip i, .chip svg{display:inline-block; vertical-align:-3px; margin-right:4px; width:16px; height:16px;}
+
+/* Mapa */
+#mapa{
+  z-index:0;
+}
+
+/* Modal de admin */
+.modal-backdrop{
+  background:rgba(28,27,24,0.55);
+}
+.modal-card{
+  background:#FBFAF6;
+}
