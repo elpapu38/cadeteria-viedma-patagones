@@ -66,6 +66,10 @@ body{
   border-color:var(--rio);
   color:var(--arena);
 }
+.chip.bloqueado{
+  opacity:.55;
+  pointer-events:none;
+}
 .chip i, .chip svg{display:inline-block; vertical-align:-3px; margin-right:4px; width:16px; height:16px;}
 
 /* Mapa */

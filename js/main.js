@@ -1,7 +1,7 @@
 import { cargarTarifas, guardarTarifas } from './config.js';
 import { state } from './state.js';
 import { initMapa } from './mapa.js';
-import { calcularTotal, formatearPrecio } from './cotizador.js';
+import { calcularTotal, formatearPrecio, detectarRecorrido } from './cotizador.js';
 import { initAdmin } from './admin.js';
 import { enviarPedidoPorWhatsApp } from './whatsapp.js';
 
@@ -13,6 +13,51 @@ const inputOrigen = document.getElementById('input-origen');
 const inputDestino = document.getElementById('input-destino');
 const cajaAlias = document.getElementById('caja-alias');
 const btnWhatsapp = document.getElementById('btn-whatsapp');
+const chipsRecorrido = document.querySelectorAll('[data-recorrido]');
+const avisoRecorrido = document.getElementById('aviso-recorrido');
+
+const ETIQUETAS_RECORRIDO = {
+  viedma: 'Interno Viedma',
+  patagones: 'Interno C. de Patagones',
+  cruce: 'Cruce entre ciudades',
+};
+
+function marcarRecorridoEnUI(valor) {
+  chipsRecorrido.forEach((chip) => chip.classList.toggle('selected', chip.dataset.recorrido === valor));
+}
+
+function bloquearChipsRecorrido(bloquear) {
+  chipsRecorrido.forEach((chip) => chip.classList.toggle('bloqueado', bloquear));
+}
+
+function mostrarAviso(texto) {
+  avisoRecorrido.textContent = texto || '';
+  avisoRecorrido.classList.toggle('hidden', !texto);
+}
+
+// Compara lo que el cliente eligió a mano contra la ciudad real detectada
+// en los dos puntos del mapa, y corrige el recorrido si no coinciden.
+function sincronizarRecorridoConMapa() {
+  if (!state.origen || !state.destino) {
+    bloquearChipsRecorrido(false);
+    mostrarAviso('');
+    return;
+  }
+
+  const detectado = detectarRecorrido(state.origen, state.destino);
+
+  if (detectado) {
+    state.recorrido = detectado;
+    marcarRecorridoEnUI(detectado);
+    bloquearChipsRecorrido(true);
+    mostrarAviso(`Recorrido detectado según el mapa: ${ETIQUETAS_RECORRIDO[detectado]}.`);
+  } else {
+    bloquearChipsRecorrido(false);
+    mostrarAviso('No pudimos confirmar la ciudad con las direcciones marcadas: verificá el recorrido elegido antes de enviar.');
+  }
+
+  actualizarResumen();
+}
 
 function seleccionarChip(grupoSelector, chipElegido, dataAttr, callback) {
   document.querySelectorAll(grupoSelector).forEach((chip) => chip.classList.remove('selected'));
@@ -62,14 +107,17 @@ initMapa({
   onOrigenSet: (punto) => {
     state.origen = punto;
     inputOrigen.value = punto.direccion;
+    sincronizarRecorridoConMapa();
   },
   onDestinoSet: (punto) => {
     state.destino = punto;
     inputDestino.value = punto.direccion;
+    sincronizarRecorridoConMapa();
   },
   onReiniciar: () => {
     state.destino = null;
     inputDestino.value = '';
+    sincronizarRecorridoConMapa();
   },
 });
 
