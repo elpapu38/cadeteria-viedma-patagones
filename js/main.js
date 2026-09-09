@@ -13,6 +13,8 @@ const inputOrigen = document.getElementById('input-origen');
 const inputDestino = document.getElementById('input-destino');
 const cajaAlias = document.getElementById('caja-alias');
 const btnWhatsapp = document.getElementById('btn-whatsapp');
+const avisoWhatsapp = document.getElementById('aviso-whatsapp');
+const avisoMapa = document.getElementById('aviso-mapa');
 const chipsRecorrido = document.querySelectorAll('[data-recorrido]');
 const avisoRecorrido = document.getElementById('aviso-recorrido');
 
@@ -57,6 +59,17 @@ function sincronizarRecorridoConMapa() {
   }
 
   actualizarResumen();
+}
+
+// Solo se puede enviar el pedido si hay algo cargado en ambos campos
+// (ya sea porque se marcó en el mapa o porque se escribió a mano).
+function actualizarEstadoBotonWhatsapp() {
+  const hayOrigen = inputOrigen.value.trim() !== '';
+  const hayDestino = inputDestino.value.trim() !== '';
+  const puedeEnviar = hayOrigen && hayDestino;
+
+  btnWhatsapp.disabled = !puedeEnviar;
+  avisoWhatsapp.classList.toggle('hidden', puedeEnviar);
 }
 
 function seleccionarChip(grupoSelector, chipElegido, dataAttr, callback) {
@@ -107,18 +120,28 @@ initMapa({
   onOrigenSet: (punto) => {
     state.origen = punto;
     inputOrigen.value = punto.direccion;
+    avisoMapa.classList.toggle('hidden', !punto.error);
     sincronizarRecorridoConMapa();
+    actualizarEstadoBotonWhatsapp();
   },
   onDestinoSet: (punto) => {
     state.destino = punto;
     inputDestino.value = punto.direccion;
+    avisoMapa.classList.toggle('hidden', !punto.error);
     sincronizarRecorridoConMapa();
+    actualizarEstadoBotonWhatsapp();
   },
   onReiniciar: () => {
     state.destino = null;
     inputDestino.value = '';
     sincronizarRecorridoConMapa();
+    actualizarEstadoBotonWhatsapp();
   },
+});
+
+// Si el cliente escribe la dirección a mano (por ejemplo, tras un error del mapa)
+[inputOrigen, inputDestino].forEach((input) => {
+  input.addEventListener('input', actualizarEstadoBotonWhatsapp);
 });
 
 // --- Panel admin ---
@@ -147,3 +170,4 @@ btnWhatsapp.addEventListener('click', () => {
 // Íconos y primer cálculo
 if (window.lucide) window.lucide.createIcons();
 actualizarResumen();
+actualizarEstadoBotonWhatsapp();

@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cruce Directo · Cadetería y Moto-Viajes | Viedma - Carmen de Patagones</title>
+<meta name="description" content="Cadetería, envíos y viajes de pasajero en moto entre Viedma y Carmen de Patagones. Cotizá y pedí por WhatsApp en menos de un minuto.">
+
+<!-- Vista previa al compartir el link (WhatsApp, Facebook, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cruce Directo · Cadetería y Moto-Viajes">
+<meta property="og:description" content="Pedís cadetería o un viaje en moto entre Viedma y Carmen de Patagones. Cotizá y confirmá por WhatsApp en un minuto.">
+<meta property="og:image" content="https://elpapu38.github.io/cadeteria-viedma-patagones/img/og-image.png">
+<meta property="og:url" content="https://elpapu38.github.io/cadeteria-viedma-patagones/">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Instalable como app -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16324F">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CruceDirecto">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -100,8 +119,11 @@
 
       <!-- Mapa -->
       <div id="mapa" class="w-full h-56 rounded-xl mb-2 border border-black/10 overflow-hidden"></div>
-      <p class="text-xs text-[color:var(--tinta)]/50 mb-5">
+      <p class="text-xs text-[color:var(--tinta)]/50 mb-1">
         Primer toque marca el origen, segundo toque el destino. Volvé a tocar para reiniciar.
+      </p>
+      <p id="aviso-mapa" class="hidden text-xs mb-5 font-medium" style="color:#B23A2E">
+        No pudimos detectar la dirección automáticamente. Escribila a mano en los campos de arriba.
       </p>
 
       <!-- Medio de pago -->
@@ -135,9 +157,12 @@
         </div>
       </div>
 
-      <button type="button" id="btn-whatsapp" class="btn-whatsapp w-full rounded-xl py-4 font-medium flex items-center justify-center gap-2">
+      <button type="button" id="btn-whatsapp" class="btn-whatsapp w-full rounded-xl py-4 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
         <i data-lucide="message-circle" class="w-4 h-4"></i> Pedir por WhatsApp
       </button>
+      <p id="aviso-whatsapp" class="text-xs text-center mt-2 text-[color:var(--tinta)]/50">
+        Marcá el origen y el destino para poder enviar el pedido.
+      </p>
     </div>
   </section>
 

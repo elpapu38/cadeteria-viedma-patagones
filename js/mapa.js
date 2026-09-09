@@ -34,15 +34,15 @@ export function initMapa({ onOrigenSet, onDestinoSet, onReiniciar }) {
 
     if (!marcadorOrigen) {
       marcadorOrigen = L.marker(punto, { icon: iconoOrigen }).addTo(mapa);
-      const { direccion, zona } = await obtenerDireccion(punto);
-      onOrigenSet({ lat: punto.lat, lng: punto.lng, direccion, zona });
+      const { direccion, zona, error } = await obtenerDireccion(punto);
+      onOrigenSet({ lat: punto.lat, lng: punto.lng, direccion, zona, error });
       return;
     }
 
     if (!marcadorDestino) {
       marcadorDestino = L.marker(punto, { icon: iconoDestino }).addTo(mapa);
-      const { direccion, zona } = await obtenerDireccion(punto);
-      onDestinoSet({ lat: punto.lat, lng: punto.lng, direccion, zona });
+      const { direccion, zona, error } = await obtenerDireccion(punto);
+      onDestinoSet({ lat: punto.lat, lng: punto.lng, direccion, zona, error });
       return;
     }
 
@@ -52,8 +52,8 @@ export function initMapa({ onOrigenSet, onDestinoSet, onReiniciar }) {
     marcadorDestino = null;
     marcadorOrigen = L.marker(punto, { icon: iconoOrigen }).addTo(mapa);
     onReiniciar();
-    const { direccion, zona } = await obtenerDireccion(punto);
-    onOrigenSet({ lat: punto.lat, lng: punto.lng, direccion, zona });
+    const { direccion, zona, error } = await obtenerDireccion(punto);
+    onOrigenSet({ lat: punto.lat, lng: punto.lng, direccion, zona, error });
   });
 
   return mapa;
@@ -64,13 +64,15 @@ async function obtenerDireccion(latlng) {
     const respuesta = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`
     );
+    if (!respuesta.ok) throw new Error('Respuesta no OK de Nominatim');
     const datos = await respuesta.json();
     return {
       direccion: formatearDireccion(datos.address),
       zona: detectarZona(datos.address),
+      error: false,
     };
   } catch {
-    return { direccion: 'Punto marcado en el mapa', zona: null };
+    return { direccion: '', zona: null, error: true };
   }
 }
 
