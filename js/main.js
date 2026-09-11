@@ -199,7 +199,7 @@ document.getElementById('btn-copiar-alias')?.addEventListener('click', () => {
 // --- Enviar por WhatsApp ---
 btnWhatsapp.addEventListener('click', () => {
   const { total, detalle } = actualizarResumen();
-  enviarPedidoPorWhatsApp({ state, detalle, total });
+  enviarPedidoPorWhatsApp({ state, detalle, total, numeroWhatsapp: tarifas.numeroWhatsapp });
 });
 
 // Íconos y primer cálculo

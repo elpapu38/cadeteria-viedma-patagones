@@ -23,6 +23,7 @@ export function initAdmin({ tarifas, onGuardar }) {
     recargoPasajero: document.getElementById('cfg-pasajero'),
     horarioApertura: document.getElementById('cfg-horario-apertura'),
     horarioCierre: document.getElementById('cfg-horario-cierre'),
+    numeroWhatsapp: document.getElementById('cfg-numero-whatsapp'),
     nuevaClave: document.getElementById('cfg-nueva-clave'),
   };
 
@@ -52,6 +53,7 @@ export function initAdmin({ tarifas, onGuardar }) {
     campos.recargoPasajero.value = tarifas.recargoPasajero;
     campos.horarioApertura.value = tarifas.horarioApertura || '';
     campos.horarioCierre.value = tarifas.horarioCierre || '';
+    campos.numeroWhatsapp.value = tarifas.numeroWhatsapp || '';
     campos.nuevaClave.value = ''; // nunca se muestra la clave actual
   }
 
@@ -75,6 +77,7 @@ export function initAdmin({ tarifas, onGuardar }) {
       recargoPasajero: parseFloat(campos.recargoPasajero.value) || 0,
       horarioApertura: campos.horarioApertura.value || tarifas.horarioApertura,
       horarioCierre: campos.horarioCierre.value || tarifas.horarioCierre,
+      numeroWhatsapp: campos.numeroWhatsapp.value.trim() || tarifas.numeroWhatsapp,
     };
 
     if (campos.nuevaClave.value.trim() !== '') {

@@ -1,7 +1,4 @@
-// TODO: reemplazar por el número real del chofer/servicio (con código de país, sin espacios ni "+")
-const NUMERO_WHATSAPP = '5492920000000';
-
-export function enviarPedidoPorWhatsApp({ state, detalle, total }) {
+export function enviarPedidoPorWhatsApp({ state, detalle, total, numeroWhatsapp }) {
   const origenTxt = state.origen?.direccion || 'A confirmar';
   const destinoTxt = state.destino?.direccion || 'A confirmar';
   const servicioTxt = state.tipoServicio === 'pasajero' ? 'Pasajero' : 'Cadetería / Envío';
@@ -13,18 +10,30 @@ export function enviarPedidoPorWhatsApp({ state, detalle, total }) {
   const lineas = [
     '¡Hola! Solicito servicio de moto.',
     '',
-    `📌 Origen: ${origenTxt}`,
-    `🏁 Destino: ${destinoTxt}`,
+    `📌 *Origen:* ${origenTxt}`,
+    ...enlaceMaps(state.origen),
+    '',
+    `🏁 *Destino:* ${destinoTxt}`,
+    ...enlaceMaps(state.destino),
+    '',
     `📐 ${detalle}`,
-    `🛵 Servicio: ${servicioTxt}`,
-    `💳 Pago: ${pagoTxt}`,
-    `💰 Estimado: ${formatearParaMensaje(total)}`,
+    `🛵 *Servicio:* ${servicioTxt}`,
+    `💳 *Pago:* ${pagoTxt}`,
+    `💰 *Estimado:* ${formatearParaMensaje(total)}`,
   ];
 
   const mensajeCodificado = encodeURIComponent(lineas.join('\n'));
-  const enlace = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensajeCodificado}`;
+  const enlace = `https://wa.me/${numeroWhatsapp}?text=${mensajeCodificado}`;
 
   abrirEnlace(enlace);
+}
+
+// Si el punto viene del mapa (tiene lat/lng), se agrega un link de Google
+// Maps para que el remisero pueda tocarlo e ir directo a navegar. Si el
+// cliente escribió la dirección a mano, no hay coordenadas y no se agrega nada.
+function enlaceMaps(punto) {
+  if (!punto || punto.lat === undefined || punto.lng === undefined) return [];
+  return [`🗺️ https://www.google.com/maps?q=${punto.lat},${punto.lng}`];
 }
 
 // Crea un link real y lo "clickea" por código, en vez de usar window.open()

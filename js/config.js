@@ -9,6 +9,7 @@ export const tarifasPorDefecto = {
   horarioApertura: '08:00',
   horarioCierre: '21:00',
   claveAdmin: '1234',
+  numeroWhatsapp: '', // TODO: se completa desde la planilla (fila "numeroWhatsapp")
 };
 
 // URL de la Google Apps Script Web App conectada a la planilla de configuración.
