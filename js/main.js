@@ -5,6 +5,7 @@ import { calcularTotal, formatearPrecio, detectarRecorrido } from './cotizador.j
 import { initAdmin } from './admin.js';
 import { enviarPedidoPorWhatsApp } from './whatsapp.js';
 import { estaAbierto } from './horario.js';
+import { estaDentroDeCobertura } from './distancia.js';
 
 // Se espera a que responda la planilla antes de seguir armando la página
 // (si falla o tarda, cargarTarifas ya devuelve los valores por defecto).
@@ -18,6 +19,7 @@ const cajaAlias = document.getElementById('caja-alias');
 const btnWhatsapp = document.getElementById('btn-whatsapp');
 const avisoWhatsapp = document.getElementById('aviso-whatsapp');
 const avisoMapa = document.getElementById('aviso-mapa');
+const avisoCobertura = document.getElementById('aviso-cobertura');
 const chipsRecorrido = document.querySelectorAll('[data-recorrido]');
 const avisoRecorrido = document.getElementById('aviso-recorrido');
 const bannerHorario = document.getElementById('banner-horario');
@@ -66,14 +68,23 @@ function sincronizarRecorridoConMapa() {
 }
 
 // Solo se puede enviar el pedido si hay algo cargado en ambos campos
-// (ya sea porque se marcó en el mapa o porque se escribió a mano).
+// (ya sea porque se marcó en el mapa o porque se escribió a mano), y si
+// los puntos marcados en el mapa están dentro de la zona de cobertura.
+function estaFueraDeCobertura(punto) {
+  if (!punto || punto.lat === undefined || punto.lng === undefined) return false; // sin coordenadas (dirección escrita a mano): no se puede chequear
+  return !estaDentroDeCobertura(punto);
+}
+
 function actualizarEstadoBotonWhatsapp() {
   const hayOrigen = inputOrigen.value.trim() !== '';
   const hayDestino = inputDestino.value.trim() !== '';
-  const puedeEnviar = hayOrigen && hayDestino;
+  const fueraDeCobertura = estaFueraDeCobertura(state.origen) || estaFueraDeCobertura(state.destino);
 
+  avisoCobertura.classList.toggle('hidden', !fueraDeCobertura);
+
+  const puedeEnviar = hayOrigen && hayDestino && !fueraDeCobertura;
   btnWhatsapp.disabled = !puedeEnviar;
-  avisoWhatsapp.classList.toggle('hidden', puedeEnviar);
+  avisoWhatsapp.classList.toggle('hidden', puedeEnviar || fueraDeCobertura);
 }
 
 function seleccionarChip(grupoSelector, chipElegido, dataAttr, callback) {

@@ -1,5 +1,5 @@
-// Centrado aproximado entre Viedma y Carmen de Patagones.
-const CENTRO_INICIAL = [-40.808, -62.99];
+import { CENTRO_ZONA } from './distancia.js';
+
 const ZOOM_INICIAL = 13;
 
 /**
@@ -16,7 +16,7 @@ const ZOOM_INICIAL = 13;
  * a partir de la geocodificación inversa (Nominatim).
  */
 export function initMapa({ onOrigenSet, onDestinoSet, onReiniciar }) {
-  const mapa = L.map('mapa').setView(CENTRO_INICIAL, ZOOM_INICIAL);
+  const mapa = L.map('mapa').setView([CENTRO_ZONA.lat, CENTRO_ZONA.lng], ZOOM_INICIAL);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap',

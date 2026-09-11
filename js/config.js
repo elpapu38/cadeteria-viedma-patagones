@@ -23,7 +23,7 @@ export async function cargarTarifas() {
     const datos = await respuesta.json();
     // Se combina con los valores por defecto, por si en la planilla falta
     // alguna clave nueva que todavía no se agregó a mano.
-    return { ...tarifasPorDefecto, ...normalizarNumeros(datos) };
+    return { ...tarifasPorDefecto, ...normalizarHorarios(normalizarNumeros(datos)) };
   } catch {
     return { ...tarifasPorDefecto };
   }
@@ -38,6 +38,37 @@ function normalizarNumeros(datos) {
       normalizado[campo] = parseFloat(normalizado[campo]);
     }
   });
+  return normalizado;
+}
+
+// Google Sheets guarda internamente las horas como una fecha (con el día
+// "30 de diciembre de 1899" fijo), y a veces eso se filtra tal cual hasta
+// acá según cómo haya quedado la celda. Esto lo detecta y lo deja siempre
+// como un texto limpio "HH:mm", sin importar en qué forma haya llegado.
+function normalizarHorarios(datos) {
+  const camposHorario = ['horarioApertura', 'horarioCierre'];
+  const normalizado = { ...datos };
+
+  camposHorario.forEach((campo) => {
+    const valor = normalizado[campo];
+    if (typeof valor !== 'string') return;
+
+    // Ya viene limpio (ej: "08:00"): no se toca.
+    if (/^\d{1,2}:\d{2}$/.test(valor.trim())) {
+      normalizado[campo] = valor.trim();
+      return;
+    }
+
+    // Viene como fecha (ISO, o el texto largo tipo "Sat Dec 30 1899..."):
+    // se interpreta y se extrae solo la hora y el minuto.
+    const fecha = new Date(valor);
+    if (!Number.isNaN(fecha.getTime())) {
+      const horas = String(fecha.getHours()).padStart(2, '0');
+      const minutos = String(fecha.getMinutes()).padStart(2, '0');
+      normalizado[campo] = `${horas}:${minutos}`;
+    }
+  });
+
   return normalizado;
 }
 
