@@ -1,6 +1,10 @@
 /**
- * Conecta el botón "Panel admin" con el modal de edición de tarifas.
- * onGuardar(tarifasActualizadas) se llama cuando el admin guarda cambios.
+ * Conecta el botón del panel (⚙️) con el modal de edición de tarifas,
+ * horarios y contraseña. Los cambios se guardan en la planilla de Google
+ * (no en este navegador), así le llegan a todos los visitantes.
+ *
+ * onGuardar(cambios, claveActual) se llama al guardar; debe devolver
+ * (o resolver a) { ok: true } o { ok: false, error: '...' }.
  */
 export function initAdmin({ tarifas, onGuardar }) {
   const btnAbrir = document.getElementById('btnAdmin');
@@ -17,7 +21,14 @@ export function initAdmin({ tarifas, onGuardar }) {
     fijoPatagones: document.getElementById('cfg-fijo-patagones'),
     fijoCruce: document.getElementById('cfg-fijo-cruce'),
     recargoPasajero: document.getElementById('cfg-pasajero'),
+    horarioApertura: document.getElementById('cfg-horario-apertura'),
+    horarioCierre: document.getElementById('cfg-horario-cierre'),
+    nuevaClave: document.getElementById('cfg-nueva-clave'),
   };
+
+  // Se guarda en memoria (no en el HTML) la clave con la que se hizo login,
+  // para poder mandarla junto con los cambios al guardar.
+  let claveIngresada = '';
 
   function abrir() {
     modal.classList.remove('hidden');
@@ -39,6 +50,9 @@ export function initAdmin({ tarifas, onGuardar }) {
     campos.fijoPatagones.value = tarifas.fijoPatagones;
     campos.fijoCruce.value = tarifas.fijoCruce;
     campos.recargoPasajero.value = tarifas.recargoPasajero;
+    campos.horarioApertura.value = tarifas.horarioApertura || '';
+    campos.horarioCierre.value = tarifas.horarioCierre || '';
+    campos.nuevaClave.value = ''; // nunca se muestra la clave actual
   }
 
   btnAbrir.addEventListener('click', abrir);
@@ -46,21 +60,40 @@ export function initAdmin({ tarifas, onGuardar }) {
 
   btnLogin.addEventListener('click', () => {
     if (inputPass.value === tarifas.claveAdmin) {
+      claveIngresada = inputPass.value;
       mostrarFormularioDePrecios();
     } else {
       alert('Contraseña incorrecta');
     }
   });
 
-  btnGuardar.addEventListener('click', () => {
-    const actualizadas = {
-      ...tarifas,
+  btnGuardar.addEventListener('click', async () => {
+    const cambios = {
       fijoViedma: parseFloat(campos.fijoViedma.value) || 0,
       fijoPatagones: parseFloat(campos.fijoPatagones.value) || 0,
       fijoCruce: parseFloat(campos.fijoCruce.value) || 0,
       recargoPasajero: parseFloat(campos.recargoPasajero.value) || 0,
+      horarioApertura: campos.horarioApertura.value || tarifas.horarioApertura,
+      horarioCierre: campos.horarioCierre.value || tarifas.horarioCierre,
     };
-    onGuardar(actualizadas);
+
+    if (campos.nuevaClave.value.trim() !== '') {
+      cambios.nuevaClave = campos.nuevaClave.value.trim();
+    }
+
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
+    const resultado = await onGuardar(cambios, claveIngresada);
+
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar cambios';
+
+    if (resultado && resultado.ok === false) {
+      alert(resultado.error || 'No se pudo guardar. Probá de nuevo.');
+      return; // se deja el modal abierto para reintentar
+    }
+
     cerrar();
   });
 }

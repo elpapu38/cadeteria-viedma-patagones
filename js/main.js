@@ -4,8 +4,11 @@ import { initMapa } from './mapa.js';
 import { calcularTotal, formatearPrecio, detectarRecorrido } from './cotizador.js';
 import { initAdmin } from './admin.js';
 import { enviarPedidoPorWhatsApp } from './whatsapp.js';
+import { estaAbierto } from './horario.js';
 
-let tarifas = cargarTarifas();
+// Se espera a que responda la planilla antes de seguir armando la página
+// (si falla o tarda, cargarTarifas ya devuelve los valores por defecto).
+const tarifas = await cargarTarifas();
 
 const txtTotal = document.getElementById('txt-total');
 const txtDetalle = document.getElementById('txt-detalle');
@@ -17,6 +20,7 @@ const avisoWhatsapp = document.getElementById('aviso-whatsapp');
 const avisoMapa = document.getElementById('aviso-mapa');
 const chipsRecorrido = document.querySelectorAll('[data-recorrido]');
 const avisoRecorrido = document.getElementById('aviso-recorrido');
+const bannerHorario = document.getElementById('banner-horario');
 
 const ETIQUETAS_RECORRIDO = {
   viedma: 'Interno Viedma',
@@ -85,6 +89,26 @@ function actualizarResumen() {
   return { total, detalle };
 }
 
+// Solo informa: nunca bloquea el pedido, aunque esté fuera de horario.
+function actualizarBannerHorario() {
+  if (!tarifas.horarioApertura || !tarifas.horarioCierre) {
+    bannerHorario.classList.add('hidden');
+    return;
+  }
+
+  bannerHorario.classList.remove('hidden');
+
+  if (estaAbierto(tarifas)) {
+    bannerHorario.textContent = `Abierto ahora · atendemos de ${tarifas.horarioApertura} a ${tarifas.horarioCierre} hs`;
+    bannerHorario.style.background = '#DCEFE2';
+    bannerHorario.style.color = '#1F6B3A';
+  } else {
+    bannerHorario.textContent = `Fuera de horario de atención (de ${tarifas.horarioApertura} a ${tarifas.horarioCierre} hs) — igual podés dejar tu pedido cargado.`;
+    bannerHorario.style.background = '#F1E7D2';
+    bannerHorario.style.color = '#8A5A1E';
+  }
+}
+
 // --- Chips: tipo de servicio (pasajero / cadetería) ---
 document.querySelectorAll('[data-servicio]').forEach((chip) => {
   chip.addEventListener('click', () => {
@@ -147,10 +171,21 @@ initMapa({
 // --- Panel admin ---
 initAdmin({
   tarifas,
-  onGuardar: (tarifasActualizadas) => {
-    tarifas = tarifasActualizadas;
-    guardarTarifas(tarifas);
-    actualizarResumen();
+  onGuardar: async (cambios, claveActual) => {
+    const resultado = await guardarTarifas(cambios, claveActual);
+
+    if (resultado.ok) {
+      // Se refleja el cambio al instante en esta pestaña, sin esperar a
+      // volver a consultar la planilla.
+      Object.assign(tarifas, cambios);
+      if (cambios.nuevaClave) {
+        tarifas.claveAdmin = cambios.nuevaClave;
+      }
+      actualizarResumen();
+      actualizarBannerHorario();
+    }
+
+    return resultado;
   },
 });
 
@@ -171,3 +206,5 @@ btnWhatsapp.addEventListener('click', () => {
 if (window.lucide) window.lucide.createIcons();
 actualizarResumen();
 actualizarEstadoBotonWhatsapp();
+actualizarBannerHorario();
+setInterval(actualizarBannerHorario, 60000); // se refresca solo por si el cliente deja la página abierta y cambia la hora
