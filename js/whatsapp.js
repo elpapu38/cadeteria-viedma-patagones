@@ -20,6 +20,7 @@ export function enviarPedidoPorWhatsApp({ state, detalle, total, numeroWhatsapp 
     `*Servicio:* ${servicioTxt}`,
     `*Pago:* ${pagoTxt}`,
     `*Total estimado:* ${formatearParaMensaje(total)}`,
+    ...(state.comentario?.trim() ? ['', `*Dato extra:* ${state.comentario.trim()}`] : []),
   ];
 
   const mensajeCodificado = encodeURIComponent(lineas.join('\n'));

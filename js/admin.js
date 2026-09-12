@@ -24,6 +24,7 @@ export function initAdmin({ tarifas, onGuardar }) {
     horarioApertura: document.getElementById('cfg-horario-apertura'),
     horarioCierre: document.getElementById('cfg-horario-cierre'),
     numeroWhatsapp: document.getElementById('cfg-numero-whatsapp'),
+    servicioPausado: document.getElementById('cfg-servicio-pausado'),
     nuevaClave: document.getElementById('cfg-nueva-clave'),
   };
 
@@ -54,6 +55,7 @@ export function initAdmin({ tarifas, onGuardar }) {
     campos.horarioApertura.value = tarifas.horarioApertura || '';
     campos.horarioCierre.value = tarifas.horarioCierre || '';
     campos.numeroWhatsapp.value = tarifas.numeroWhatsapp || '';
+    campos.servicioPausado.checked = tarifas.servicioPausado === 'si';
     campos.nuevaClave.value = ''; // nunca se muestra la clave actual
   }
 
@@ -78,6 +80,7 @@ export function initAdmin({ tarifas, onGuardar }) {
       horarioApertura: campos.horarioApertura.value || tarifas.horarioApertura,
       horarioCierre: campos.horarioCierre.value || tarifas.horarioCierre,
       numeroWhatsapp: campos.numeroWhatsapp.value.trim() || tarifas.numeroWhatsapp,
+      servicioPausado: campos.servicioPausado.checked ? 'si' : 'no',
     };
 
     if (campos.nuevaClave.value.trim() !== '') {

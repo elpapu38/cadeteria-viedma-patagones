@@ -23,6 +23,12 @@ const avisoCobertura = document.getElementById('aviso-cobertura');
 const chipsRecorrido = document.querySelectorAll('[data-recorrido]');
 const avisoRecorrido = document.getElementById('aviso-recorrido');
 const bannerHorario = document.getElementById('banner-horario');
+const formularioPedido = document.getElementById('formulario-pedido');
+const avisoServicioPausado = document.getElementById('aviso-servicio-pausado');
+const inputComentario = document.getElementById('input-comentario');
+const confirmacionEnvio = document.getElementById('confirmacion-envio');
+
+const CLAVE_ULTIMA_SELECCION = 'cd_ultima_seleccion';
 
 const ETIQUETAS_RECORRIDO = {
   viedma: 'Interno Viedma',
@@ -120,12 +126,101 @@ function actualizarBannerHorario() {
   }
 }
 
+// SEO local: le da a Google información estructurada sobre el negocio
+// (nombre, zona, teléfono, horario), tomada de los mismos datos reales de
+// la planilla, para que nunca quede desactualizada.
+function actualizarDatosEstructurados() {
+  const datos = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: 'Cruce Directo',
+    description:
+      'Cadetería, envíos y viajes de pasajero en moto entre Viedma y Carmen de Patagones.',
+    url: window.location.href,
+    areaServed: [
+      { '@type': 'City', name: 'Viedma' },
+      { '@type': 'City', name: 'Carmen de Patagones' },
+    ],
+  };
+
+  if (tarifas.numeroWhatsapp) {
+    datos.telephone = `+${tarifas.numeroWhatsapp}`;
+  }
+
+  if (tarifas.horarioApertura && tarifas.horarioCierre) {
+    datos.openingHoursSpecification = {
+      '@type': 'OpeningHoursSpecification',
+      opens: tarifas.horarioApertura,
+      closes: tarifas.horarioCierre,
+    };
+  }
+
+  const scriptExistente = document.getElementById('datos-estructurados');
+  if (scriptExistente) scriptExistente.remove();
+
+  const script = document.createElement('script');
+  script.id = 'datos-estructurados';
+  script.type = 'application/ld+json';
+  script.textContent = JSON.stringify(datos);
+  document.head.appendChild(script);
+}
+
+// Si el admin pausó el sitio desde el panel, se oculta el formulario y se
+// muestra un aviso en su lugar. Nunca se corta el acceso al panel admin
+// (queda arriba, en el header) para poder reactivarlo.
+function actualizarModoPausado() {
+  const pausado = tarifas.servicioPausado === 'si';
+  formularioPedido.classList.toggle('hidden', pausado);
+  avisoServicioPausado.classList.toggle('hidden', !pausado);
+}
+
+// Recuerda, solo en este navegador, la última combinación de tipo de
+// servicio y medio de pago que eligió el cliente, para no hacerlo repetir
+// todo de cero en su próxima visita. No guarda direcciones (cambian en
+// cada viaje) ni nada de la planilla.
+function guardarUltimaSeleccion() {
+  try {
+    localStorage.setItem(
+      CLAVE_ULTIMA_SELECCION,
+      JSON.stringify({ tipoServicio: state.tipoServicio, medioPago: state.medioPago })
+    );
+  } catch {
+    // Si el navegador bloquea localStorage (modo privado, etc.), no pasa nada grave.
+  }
+}
+
+function aplicarUltimaSeleccion() {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CLAVE_ULTIMA_SELECCION));
+    if (!guardado) return;
+
+    if (guardado.tipoServicio) {
+      state.tipoServicio = guardado.tipoServicio;
+      document.querySelectorAll('[data-servicio]').forEach((chip) => {
+        chip.classList.toggle('selected', chip.dataset.servicio === guardado.tipoServicio);
+      });
+    }
+
+    if (guardado.medioPago) {
+      state.medioPago = guardado.medioPago;
+      document.querySelectorAll('[data-pago]').forEach((chip) => {
+        chip.classList.toggle('selected', chip.dataset.pago === guardado.medioPago);
+      });
+      cajaAlias.classList.toggle('hidden', guardado.medioPago !== 'transferencia');
+    }
+  } catch {
+    // Si el valor guardado está corrupto o localStorage no está disponible, se ignora.
+  }
+}
+
+
 // --- Chips: tipo de servicio (pasajero / cadetería) ---
 document.querySelectorAll('[data-servicio]').forEach((chip) => {
   chip.addEventListener('click', () => {
     seleccionarChip('[data-servicio]', chip, 'servicio', (valor) => {
       state.tipoServicio = valor;
       actualizarResumen();
+      guardarUltimaSeleccion();
     });
   });
 });
@@ -146,8 +241,14 @@ document.querySelectorAll('[data-pago]').forEach((chip) => {
     seleccionarChip('[data-pago]', chip, 'pago', (valor) => {
       state.medioPago = valor;
       cajaAlias.classList.toggle('hidden', valor !== 'transferencia');
+      guardarUltimaSeleccion();
     });
   });
+});
+
+// --- Comentario opcional ---
+inputComentario.addEventListener('input', () => {
+  state.comentario = inputComentario.value;
 });
 
 // --- Mapa ---
@@ -194,6 +295,8 @@ initAdmin({
       }
       actualizarResumen();
       actualizarBannerHorario();
+      actualizarDatosEstructurados();
+      actualizarModoPausado();
     }
 
     return resultado;
@@ -208,14 +311,28 @@ document.getElementById('btn-copiar-alias')?.addEventListener('click', () => {
 });
 
 // --- Enviar por WhatsApp ---
+let enviandoPedido = false;
 btnWhatsapp.addEventListener('click', () => {
+  if (enviandoPedido) return; // evita que un doble clic abra dos pedidos/pestañas
+  enviandoPedido = true;
+
   const { total, detalle } = actualizarResumen();
   enviarPedidoPorWhatsApp({ state, detalle, total, numeroWhatsapp: tarifas.numeroWhatsapp });
+
+  confirmacionEnvio.classList.remove('hidden');
+  avisoWhatsapp.classList.add('hidden');
+  setTimeout(() => {
+    confirmacionEnvio.classList.add('hidden');
+    enviandoPedido = false;
+  }, 4000);
 });
 
 // Íconos y primer cálculo
 if (window.lucide) window.lucide.createIcons();
+aplicarUltimaSeleccion();
 actualizarResumen();
 actualizarEstadoBotonWhatsapp();
 actualizarBannerHorario();
+actualizarDatosEstructurados();
+actualizarModoPausado();
 setInterval(actualizarBannerHorario, 60000); // se refresca solo por si el cliente deja la página abierta y cambia la hora

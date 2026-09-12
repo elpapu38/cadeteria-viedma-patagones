@@ -6,4 +6,5 @@ export const state = {
   medioPago: 'efectivo', // 'efectivo' | 'transferencia'
   origen: null, // { lat, lng, direccion }
   destino: null, // { lat, lng, direccion }
+  comentario: '', // dato extra opcional que escribe el cliente
 };

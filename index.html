@@ -58,9 +58,6 @@
         <p class="mt-5 max-w-md text-base md:text-lg text-[color:var(--tinta)]/70">
           Pedís, cotizás y confirmás por WhatsApp en menos de un minuto. Sin apps que descargar, sin vueltas.
         </p>
-        <p class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" style="background:#00000008; color:var(--tinta); opacity:.65">
-          <i data-lucide="bike" class="w-3.5 h-3.5"></i> Servicio realizado en moto
-        </p>
 
         <div class="mt-9 flex items-center gap-3 max-w-md">
           <div class="route-dot"></div>
@@ -123,6 +120,12 @@
         <h2 class="font-display text-2xl mb-3" style="color:var(--tinta)">Armá tu pedido</h2>
         <p id="banner-horario" class="hidden text-xs font-medium rounded-lg px-3 py-2 mb-4"></p>
 
+        <!-- Se muestra en vez del formulario cuando el servicio está pausado desde el panel admin -->
+        <div id="aviso-servicio-pausado" class="hidden text-sm rounded-xl p-4" style="background:#F1E7D2; color:#8A5A1E">
+          Por el momento no estamos tomando pedidos por acá. Volvé a intentar más tarde.
+        </div>
+
+        <div id="formulario-pedido">
         <!-- Tipo de servicio -->
         <div class="mb-5">
           <label class="block text-sm font-medium mb-2 text-[color:var(--tinta)]/70">¿Qué necesitás?</label>
@@ -202,6 +205,13 @@
           </button>
         </div>
 
+        <!-- Comentario opcional -->
+        <div class="mb-5">
+          <label class="block text-sm font-medium mb-1.5 text-[color:var(--tinta)]/70">¿Algún dato extra? (opcional)</label>
+          <input id="input-comentario" type="text" maxlength="200" placeholder="Ej: tocar timbre del fondo"
+                 class="field w-full rounded-xl px-4 py-3 text-sm">
+        </div>
+
         <!-- Resumen + acción -->
         <div class="flex items-center justify-between rounded-xl p-4 mb-4" style="background:var(--rio)">
           <div>
@@ -216,6 +226,10 @@
         <p id="aviso-whatsapp" class="text-xs text-center mt-2 text-[color:var(--tinta)]/50">
           Marcá el origen y el destino para poder enviar el pedido.
         </p>
+        <p id="confirmacion-envio" class="hidden text-xs text-center mt-2 font-medium" style="color:#1F6B3A">
+          Listo — se abrió WhatsApp con tu pedido.
+        </p>
+        </div>
       </div>
     </section>
   </main>
@@ -275,6 +289,12 @@
           <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Número de WhatsApp (con código de país, sin +)</label>
           <input type="text" id="cfg-numero-whatsapp" placeholder="5492920705293"
                  class="field w-full rounded-lg px-3 py-1.5 text-sm">
+        </div>
+        <div class="pt-2 border-t border-black/10 flex items-center justify-between">
+          <label for="cfg-servicio-pausado" class="text-xs font-medium text-[color:var(--tinta)]/60">
+            Pausar el sitio (no tomar pedidos)
+          </label>
+          <input type="checkbox" id="cfg-servicio-pausado" class="w-4 h-4">
         </div>
         <div class="pt-2 border-t border-black/10">
           <label class="block text-xs font-medium mb-1 text-[color:var(--tinta)]/60">Nueva contraseña</label>
